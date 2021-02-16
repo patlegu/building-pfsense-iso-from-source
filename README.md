@@ -19,17 +19,15 @@ You will then have to fork 3 repositories:
 You will also need to apply the follwing changes :
 
 ### FreeBSD Source
-- Checkout to the `RELENG_2_5` branch. 
+- Checkout to the the branch you would like to build (`devel-12` for dev version, `RELENG_2_5` for stable version).
 - In the folder `/release/conf/`, rename `pfSense_src-env.conf`, `pfSense_src.conf` and `pfSense_make.conf` to `libreSense_src-env.conf`, `libreSense_src.conf` and `libreSense_make.conf`
 - Rename the file `/sys/amd64/conf/pfSense` to `/sys/amd64/conf/libreSense`
-- Edit the file `/tools/tools/crypto/Makefile` : remove `cryptokeytest` from the `PROGS` command
 
 ### pfSense GUI
 - Go to the folder `/tools/templates/pkg_repos/` in the branch you would like to build (`master`for dev version, `RELENG_2_5_0` for stable version) and change `pfSense` to `libreSense` in the file names (e.g., `pfSense-repo.abi => libreSense-repo.abi`)
-- Edit the file `/src/etc/inc/globals.inc` : replace the content of `product_name` by `libreSense`.
-- Edit the file `/tools/conf/pfPorts/make.conf` : replace `pfSense` by `libreSense` in the `PFSENSE_REPOS` variable.
+- Edit the file `/src/etc/inc/globals.inc` : replace the content of `product_name` by `libreSense`, and the content of `pkg_prefix` by `libreSense-pkg-`.
 - In the folder `/src/usr/local/share/`, rename the folder `pfSense` to `libreSense`.
-- In the folder `/src/etc/`, rename the files `pfSense-ddb.conf` and `pfSense-devd.conf` to `libreSense-ddb.conf` and `libreSense-devd.conf`
+- In the folder `/src/etc/`, rename the files `pfSense-ddb.conf` and `pfSense-devd.conf` to `libreSense-ddb.conf` and `libreSense-devd.conf`.
 
 ## A deeper look into Netgate build environment
 
@@ -71,7 +69,7 @@ echo PermitRootLogin yes >> /etc/ssh/sshd_config
 service sshd restart
 
 # Required for configuring the server
-pkg install -y pkg vim nano
+pkg install -y pkg vim nano emacs
 
 # Required for installing and building ports
 pkg install -y git nginx poudriere-devel rsync sudo
@@ -83,7 +81,7 @@ pkg install -y vmdktool curl qemu-user-static gtar xmlstarlet pkgconf openssl
 portsnap fetch extract
 
 # not required but advised for building/monitoring/debugging
-pkg install -y htop screen wget
+pkg install -y htop screen wget mmv
 
 # Only install this if your FreeBSD is a virtual machine
 pkg install -y open-vm-tools
@@ -169,7 +167,7 @@ export PRODUCT_NAME="libreSense" # Replace with your product name
 export FREEBSD_REPO_BASE=https://github.com/{your username}/FreeBSD-src.git # Location of your FreeBSD sources repository
 export POUDRIERE_PORTS_GIT_URL=https://github.com/{your username}/FreeBSD-ports.git # Location your FreeBSD ports repository
 
-export FREEBSD_BRANCH=RELENG_2_5 # Branch of FreeBSD sources to build
+export FREEBSD_BRANCH=devel-12 # Branch of FreeBSD sources to build
 
 # The branch of FreeBSD ports to build is set automatically based on pfSense GUI branch.
 # If you would like to build a specific branch of FreeBSD ports, the variable to set is POUDRIERE_PORTS_GIT_BRANCH
@@ -240,7 +238,7 @@ The build can the monitored from the two files in the `logs/` directory of pfSen
 - `install_pkg_install_ports.txt` contain logs relative to the installation of the ports. They are retrieved from the URL specified in the `build.conf` file.
 - `isoimage.amd64` and `cloning.amd64.log` contain logs relative to the build of the ISO itself
 
-At the end of the build, a compressed iso file (`.iso.gz`) file will be present in `~pfsense/tmp/${product_name}/installer/`. You can extract it using `gzip -kd *.gz` if you need the plain `.iso`.
+At the end of the build, a compressed iso file (`.iso.gz`) will be present in `~pfsense/tmp/${product_name}/installer/`. You can extract it using `gzip -kd *.gz` if you need the plain `.iso`.
 
 ### If your encounter errors during ports or kernel build: possible root causes, and how to fix them:
 
@@ -261,7 +259,7 @@ I haven't noticed any *delayed open sourcing* myself, but If that ever happens, 
 
 Your ISO is built the same way as pfSense ISO distributed by Netgate, and does contain the same code, with one major difference: your ISO does not include GNID.
 
-GNID is a binary (located at `/usr/sbin/gnid`) that is managing Netgate license for pfSense. This binary basically generates a unique Netgate ID for each genuine pfSense. 
+GNID is a binary (located at `/usr/sbin/gnid`) which is managing Netgate license for pfSense. This binary basically generates a unique Netgate ID for each genuine pfSense. 
 
 The generated unique ID then become part of the default "User-Agent" when making HTTP requests with PHP (HTTP requests are used for fetching bogons, installing packages, displaying the first copyright message...etc). 
 
